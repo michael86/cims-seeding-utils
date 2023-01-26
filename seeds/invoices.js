@@ -152,28 +152,16 @@ const seedDatabase = async (payload) => {
       [config.userId, companyInsertId]
     );
 
-    if (!userRelationship) {
-      res.status(500).send({ status: 0, token });
-    }
-
     const { insertId: specificsRelationship } = await runQuery(
       insert("invoice_specific", ["invoice_id", "specific_id"]),
       [companyInsertId, specificsInsertId]
     );
-
-    if (!specificsRelationship) {
-      res.status(500).send({ status: 0, token });
-    }
 
     for (const itemId of itemIds) {
       const { insertId: itemInsertId } = await runQuery(
         insert("invoice_item", ["invoice_id", "item_id"]),
         [companyInsertId, itemId]
       );
-
-      if (!itemInsertId) {
-        res.status(500).send({ status: 0, token });
-      }
     }
   }
 
