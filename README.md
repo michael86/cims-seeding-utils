@@ -1,11 +1,9 @@
-This seeds directory will generate sql files based on your userId.
+# Cims Utils
 
-To use, just add the userID in the config.js then run the js file associated with what you want to generate. For intance:
+A CLI to populate the [cims backend](https://github.com/michael86/cims-backend) database.
 
-config.js
-userId = 84
-invoiceCount = 50
+To use, make sure you set up the .ENV file with the relevant info for your database, aswell as the config.json with the elevant information to populate the database.
 
-node invoices.js
+Each entry will make use of the [random-data](https://random-data-api.com/) api. Certain information isn't worth generating such as invoice footers and sku descriptions.
 
-Will create a sql file for you to import containing 50 invoices for userId 84
+To use just run `node app.js` and follow the instructions shown in the CLI
