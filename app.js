@@ -1,4 +1,5 @@
 const invoices = require("./seeds/invoices");
+const stock = require("./seeds/stock");
 
 const readline = require("readline").createInterface({
   input: process.stdin,
@@ -14,13 +15,18 @@ console.log(
 readline.question("Press enter to continue\n", () => {
   readline.question(
     `What tables do you want to seed:
-      1: invoices\n`,
+      1: invoices
+      2: stock\n`,
+
     async (option) => {
       switch (+option) {
         case 1:
           await invoices();
           break;
 
+        case 2:
+          await stock();
+          break;
         default:
           console.log("something went wrong");
           break;

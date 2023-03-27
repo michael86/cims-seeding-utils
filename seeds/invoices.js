@@ -1,6 +1,5 @@
-const axios = require("axios");
 const config = require("../config.json");
-const asyncMySQL = require("../modules/mysql/connection");
+const { getRandomDate, getRandomNumberInRange, getData } = require("../utils");
 const { runQuery } = require("../modules/mysql/sql");
 const { insert } = require("../modules/mysql/query");
 const companyNames = [
@@ -16,31 +15,6 @@ const companyNames = [
   "sports direct",
   "jd sport",
 ];
-
-const getData = async (type, count = config.invoiceCount) => {
-  const res = await axios.get(
-    `https://random-data-api.com/api/v2/${type}?size=${count}`
-  );
-
-  if (!res.data) {
-    throw new Error("Error getting data");
-  }
-
-  return res.data;
-};
-
-function getRandomNumberInRange(min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
-}
-
-function getRandomDate(billingDate) {
-  //this sort of works some dueDates are in the past, but we're seeding. Investigate later
-  const currentDate = Date.now();
-  const timestamp = Math.floor(Math.random() * currentDate);
-  return billingDate
-    ? Math.floor(getRandomNumberInRange(billingDate, currentDate) / 1000)
-    : Math.floor(new Date(timestamp).getTime() / 1000);
-}
 
 const createInvoices = async () => {
   console.log("generating users");
@@ -73,10 +47,7 @@ const createInvoices = async () => {
       };
 
       invoices.push(invoice);
-      const items = await getData(
-        "appliances",
-        getRandomNumberInRange(2, config.invoiceItemCount)
-      ); //Unfortunately they only allow a limit off 100, so have to call for each user
+      const items = await getData("appliances", getRandomNumberInRange(2, config.invoiceItemCount)); //Unfortunately they only allow a limit off 100, so have to call for each user
 
       for (const item of items) {
         const invoiceItem = {
@@ -120,25 +91,14 @@ const seedDatabase = async (payload) => {
     );
 
     const { insertId: specificsInsertId } = await runQuery(
-      insert("invoice_specifics", [
-        "due_date",
-        "billing_date",
-        "order_number",
-        "footer",
-      ]),
+      insert("invoice_specifics", ["due_date", "billing_date", "order_number", "footer"]),
       Object.values(specifics)
     );
 
     const itemIds = [];
     for (const item of items) {
       const { insertId: itemId } = await runQuery(
-        insert("invoice_items", [
-          "sku",
-          "description",
-          "quantity",
-          "price",
-          "tax",
-        ]),
+        insert("invoice_items", ["sku", "description", "quantity", "price", "tax"]),
         [item.sku, item.description, item.quantity, item.price, item.tax]
       );
 
@@ -169,6 +129,7 @@ const seedDatabase = async (payload) => {
 };
 
 const main = async () => {
+  console.log("starting");
   const invoices = await createInvoices();
   invoices && (await seedDatabase(invoices));
 };
