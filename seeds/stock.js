@@ -12,6 +12,8 @@ const {
   insertHistory,
   insertHistorylocationRelation,
   updateHistoryDate,
+  selectStock,
+  insertHistoryRelation,
 } = require("../modules/mysql/query");
 
 const getSqlDate = () => {
@@ -106,11 +108,12 @@ const createLocations = async (stockId) => {
   return ids;
 };
 
-const createHistory = async (data, locationIds = []) => {
+const createHistory = async (data, stockId, locationIds = []) => {
   try {
     console.log(`creating history snapshot for ${data.sku}`);
     const res = await runQuery(insertHistory(), [data.sku, data.quantity, data.price]);
     await runQuery(updateHistoryDate(), [data.date, res.insertId]);
+    await runQuery(insertHistoryRelation(), [stockId, res.insertId]);
     for (const location of locationIds) {
       await runQuery(insertHistorylocationRelation(), [res.insertId, location]);
     }
@@ -141,10 +144,19 @@ const insertStock = async (stock, companies) => {
 
       const locationIds = await createLocations(insertId);
 
-      await createHistory(item, locationIds);
+      await createHistory(item, insertId, locationIds);
     }
   } catch (err) {
     console.log(err);
+  }
+};
+
+const generateHistory = async () => {
+  const stock = await runQuery(selectStock());
+
+  for (const item of stock) {
+    const count = Math.floor(Math.random() * 10);
+    for (let i = 0; i <= count; i++) {}
   }
 };
 
@@ -153,8 +165,8 @@ const main = async () => {
   const companies = await getcompanyIds();
 
   await insertStock(stock, companies);
+  await generateHistory();
 
-  console.log("need to make history");
   //
   //   const invoices = await createInvoices();
   //   invoices && (await seedDatabase(invoices));
