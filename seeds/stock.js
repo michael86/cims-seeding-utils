@@ -16,11 +16,12 @@ const getSqlDate = () => {
   const date = new Date(Math.floor(Math.random() * maxDate));
 
   const year = date.getFullYear();
-  const month = date.getMonth();
+  const month = date.getMonth() + 1; //Cause month is the only one that counts from 0!! cheers js.
   const day = date.getDate();
   const hour = date.getHours();
   const min = date.getMinutes();
   const sec = date.getSeconds();
+
   return `${year}-${month}-${day} ${hour}:${min}:${sec}`;
 };
 
@@ -30,9 +31,7 @@ const generateStock = async () => {
   const skus = [];
   const temp = [];
 
-  for (const { brand, equipment } of data) {
-    temp.push(equipment);
-  }
+  for (const { equipment } of data) temp.push(equipment);
 
   //remove duplicates due to db constraints
   const unique = [...new Set(temp)];
@@ -94,17 +93,10 @@ const createLocations = async (stockId) => {
 
     let res = await runQuery(insertLocation(), [location.name, location.value]);
 
-    if (res === "ER_DUP_ENTRY") {
+    if (res === "ER_DUP_ENTRY")
       res = await runQuery(selectLocation(), [location.name, location.value]);
-    }
 
-    const resRel = await runQuery(insertLocationRelation(), [stockId, res.insertId || res[0].id]);
-
-    res === "ER_DUP_ENTRY" && console.log(resRel);
-  }
-  try {
-  } catch (err) {
-    console.log(err);
+    await runQuery(insertLocationRelation(), [stockId, res.insertId || res[0].id]);
   }
 };
 
