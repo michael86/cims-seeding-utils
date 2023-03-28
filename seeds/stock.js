@@ -9,6 +9,9 @@ const {
   insertLocation,
   selectLocation,
   insertLocationRelation,
+  insertHistory,
+  insertHistorylocationRelation,
+  updateHistoryDate,
 } = require("../modules/mysql/query");
 
 const getSqlDate = () => {
@@ -87,7 +90,7 @@ const createLocations = async (stockId) => {
   ];
 
   const count = Math.floor(Math.random() * 5) + 1;
-
+  const ids = [];
   for (let i = 0; i < count; i++) {
     const location = locations[Math.floor(Math.random() * locations.length)];
 
@@ -97,6 +100,22 @@ const createLocations = async (stockId) => {
       res = await runQuery(selectLocation(), [location.name, location.value]);
 
     await runQuery(insertLocationRelation(), [stockId, res.insertId || res[0].id]);
+    ids.push(res.insertId || res[0].id);
+  }
+
+  return ids;
+};
+
+const createHistory = async (data, locationIds = []) => {
+  try {
+    console.log(`creating history snapshot for ${data.sku}`);
+    const res = await runQuery(insertHistory(), [data.sku, data.quantity, data.price]);
+    await runQuery(updateHistoryDate(), [data.date, res.insertId]);
+    for (const location of locationIds) {
+      await runQuery(insertHistorylocationRelation(), [res.insertId, location]);
+    }
+  } catch (err) {
+    console.log(err);
   }
 };
 
@@ -120,7 +139,9 @@ const insertStock = async (stock, companies) => {
         companies[Math.floor(Math.random() * companies.length)],
       ]);
 
-      await createLocations(insertId);
+      const locationIds = await createLocations(insertId);
+
+      await createHistory(item, locationIds);
     }
   } catch (err) {
     console.log(err);

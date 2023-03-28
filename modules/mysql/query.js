@@ -7,6 +7,10 @@ const queries = {
   insertLocation: () => `INSERT INTO locations (name, value) VALUES (?, ?)`,
   selectLocation: () => `SELECT id FROM locations WHERE name = ? AND value = ?`,
   insertLocationRelation: () => `INSERT INTO stock_locations (stock_id, location_id) VALUES (?, ?)`,
+  insertHistory: () => `INSERT INTO history (sku, quantity, price) VALUES (?, ?, ?)`,
+  insertHistorylocationRelation: () =>
+    `INSERT INTO history_locations (history_id, location_id) VALUES (?, ?)`,
+  updateHistoryDate: () => `UPDATE history SET date_added = ? WHERE id = ?`,
 };
 
 module.exports = queries;
