@@ -16,7 +16,8 @@ readline.question("Press enter to continue\n", () => {
   readline.question(
     `What tables do you want to seed:
       1: invoices
-      2: stock\n`,
+      2: stock
+      3: Everything\n`,
 
     async (option) => {
       switch (+option) {
@@ -25,6 +26,10 @@ readline.question("Press enter to continue\n", () => {
           break;
 
         case 2:
+          await stock();
+          break;
+        case 3:
+          await invoices();
           await stock();
           break;
         default:
