@@ -79,7 +79,7 @@ const queries = {
   },
   insertHistory: async (data) => {
     try {
-      const res = runQuery(statements.insertHistory(), [data.sku, data.quantity, data.price]);
+      const res = await runQuery(statements.insertHistory(), [data.sku, data.quantity, data.price]);
       if (res instanceof Error) throw new Error(`insertHistory ${res}`);
       return res.insertId;
     } catch (err) {
@@ -87,6 +87,7 @@ const queries = {
     }
   },
   updateHistoryDate: async (date, id) => {
+    console.log(`updating date for ${id}: ${date} `);
     try {
       const res = runQuery(statements.updateHistoryDate(), [date, id]);
       if (res instanceof Error) throw new Error(`updateHistoryDate ${res}`);

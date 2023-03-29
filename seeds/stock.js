@@ -2,10 +2,10 @@ const stock = require("../utils/stock");
 const utils = require("../utils/index");
 
 const main = async () => {
-  const s = await stock.generate();
+  const data = await stock.generate();
   const companies = await utils.getCompanyIds();
 
-  await stock.insertStock(s, companies);
+  await stock.insertStock(data, companies);
   // await generateHistory();
 
   //

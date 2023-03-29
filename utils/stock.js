@@ -73,6 +73,7 @@ const stock = {
       console.log(`creating history snapshot for ${data.sku}`);
 
       const res = await queries.insertHistory(data);
+
       await queries.updateHistoryDate(data.date, res);
       await queries.insertHistoryRelation(stockId, res);
 
