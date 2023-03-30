@@ -18,6 +18,63 @@ const queries = {
     }
   },
 
+  selectStock: async (addLocations = false) => {
+    try {
+      let res = await runQuery(statements.selectStock());
+      if (res instanceof Error) throw new Error(`selectStock: ${res}`);
+
+      res = addLocations ? queries.addLocations(res) : res;
+
+      return res;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  patchStock: async (data) => {
+    try {
+      const res = await runQuery(statements.patchStock(), [
+        data.sku,
+        data.quantity,
+        data.price,
+        data.id,
+      ]);
+
+      if (res instanceof Error) throw new Error(`patchStock ${res}`);
+      return res;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  addLocations: async (skus) => {
+    try {
+      for (const item of skus) {
+        item.locations = await queries.selectLocations(item.id);
+      }
+      return skus;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  selectLocations: async (id) => {
+    try {
+      const locations = await runQuery(statements.selectStockLocations(), [id]);
+      if (locations instanceof Error) throw new Error(`selectLocations: ${locations}`);
+
+      const data = [];
+      for (const location of locations) {
+        const values = await runQuery(statements.selectLocationById(), [location.id]);
+        if (values instanceof Error) throw new Error(`selectLcoations: ${values}`);
+        for (const { name, value } of values) data.push({ name, value });
+      }
+
+      return data;
+    } catch (err) {
+      console.log(err);
+    }
+  },
   updateSkuDate: async (date, id) => {
     try {
       const res = await runQuery(statements.updateSkuDate(), [date, id]);
@@ -80,6 +137,7 @@ const queries = {
   insertHistory: async (data) => {
     try {
       const res = await runQuery(statements.insertHistory(), [data.sku, data.quantity, data.price]);
+
       if (res instanceof Error) throw new Error(`insertHistory ${res}`);
       return res.insertId;
     } catch (err) {
@@ -87,7 +145,6 @@ const queries = {
     }
   },
   updateHistoryDate: async (date, id) => {
-    console.log(`updating date for ${id}: ${date} `);
     try {
       const res = runQuery(statements.updateHistoryDate(), [date, id]);
       if (res instanceof Error) throw new Error(`updateHistoryDate ${res}`);

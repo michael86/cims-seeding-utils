@@ -5,7 +5,6 @@ module.exports.runQuery = async (query, data) => {
     const res = await asyncMySQL(query, data);
 
     if (res.affectedRows === 0) {
-      console.log("runQuery error", res);
       return;
     }
 

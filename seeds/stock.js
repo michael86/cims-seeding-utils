@@ -6,7 +6,7 @@ const main = async () => {
   const companies = await utils.getCompanyIds();
 
   await stock.insertStock(data, companies);
-  // await generateHistory();
+  await stock.generateHistory();
 
   //
   //   const invoices = await createInvoices();

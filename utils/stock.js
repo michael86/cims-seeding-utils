@@ -51,8 +51,6 @@ const stock = {
     return stock;
   },
   createLocations: async (id, createRelation = false) => {
-    console.log("generating locations for stock id: ", id);
-
     const count = Math.floor(Math.random() * 5) + 1;
     const ids = [];
     for (let i = 0; i < count; i++) {
@@ -85,11 +83,8 @@ const stock = {
   },
 
   insertStock: async (data, companies) => {
-    console.log("inserting stock and creating relations");
     try {
       for (const item of data) {
-        console.log("inserting ", item.sku);
-
         const res = await queries.insertStock(item);
 
         await queries.updateSkuDate(item.date, res);
@@ -109,28 +104,50 @@ const stock = {
       console.log(err);
     }
   },
+  patch: async (data) => {
+    try {
+      const res = await queries.patchStock(data);
+      if (res instanceof Error) throw new Error(`patch ${res}`);
+    } catch (err) {
+      console.log(err);
+    }
+  },
   generateHistory: async () => {
-    const stock = await runQuery(queries.selectStock());
+    const data = await queries.selectStock(true);
 
-    for (const item of stock) {
-      const count = Math.floor(Math.random() * 10) + 1;
+    for (const item of data) {
+      const count = Math.floor(Math.random() * 500) + 1;
+      console.log(`creating ${count} entries of history for ${item.sku}`);
+      let snapshot = [];
       for (let i = 0; i <= count; i++) {
-        //price, count, location
-        const target = Math.floor(Math.random() * 3) + 1;
+        const target = Math.floor(Math.random() * 2) + 1;
+
         switch (target) {
           case 1:
             item.price = utils.getRandomNumberInRange(0, 100000);
+
             break;
           case 2:
             item.quantity = utils.getRandomNumberInRange(0, 999999);
             break;
-          case 3:
-            console.log("locations");
-            break;
+          // case 3:
+          //   stock.deleteLocations(current.id)
+          //   current.locations = stock.createLocations(current.id, true)
+          //   break;
 
           default:
             break;
         }
+
+        //create dates here
+        snapshot.push(item);
+        await queries.patchStock(item);
+        snapshot[i - 1] &&
+          (await stock.createHistory(
+            snapshot[i - 1],
+            snapshot[i - 1].id
+            // snapshot[i - 1].locations generate new ids here
+          ));
       }
     }
   },
