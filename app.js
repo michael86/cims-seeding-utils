@@ -16,7 +16,7 @@ readline.question("Press enter to continue\n", () => {
   readline.question(
     `What tables do you want to seed:
       1: invoices
-      2: stock
+      2: stock (This can take a while due to history creation)
       3: Everything\n`,
 
     async (option) => {

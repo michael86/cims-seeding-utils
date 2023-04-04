@@ -1,6 +1,7 @@
 const config = require("../config.json");
 const queries = require("./queries");
 const utils = require("./index");
+const { runQuery } = require("../modules/mysql/sql");
 const locations = [
   { name: 1, value: 1 },
   { name: 2, value: 2 },
@@ -68,8 +69,6 @@ const stock = {
 
   createHistory: async (data, stockId, locationIds = []) => {
     try {
-      console.log(`creating history snapshot for ${data.sku}`);
-
       const res = await queries.insertHistory(data);
 
       await queries.updateHistoryDate(data.date, res);
@@ -116,7 +115,7 @@ const stock = {
     const data = await queries.selectStock(true);
 
     for (const item of data) {
-      const count = Math.floor(Math.random() * 500) + 1;
+      const count = utils.getRandomNumberInRange(500, 1000);
       console.log(`creating ${count} entries of history for ${item.sku}`);
       let snapshot = [];
       for (let i = 0; i <= count; i++) {
@@ -142,14 +141,17 @@ const stock = {
         //create dates here
         snapshot.push(item);
         await queries.patchStock(item);
-        snapshot[i - 1] &&
-          (await stock.createHistory(
-            snapshot[i - 1],
-            snapshot[i - 1].id
-            // snapshot[i - 1].locations generate new ids here
-          ));
+        snapshot[i - 1] && (await stock.createHistory(snapshot[i - 1], snapshot[i - 1].id));
       }
     }
+
+    //handle dates.
+    console.log("setting dates for hitory");
+    await runQuery(
+      `update history set date_added = FROM_UNIXTIME(UNIX_TIMESTAMP('1970-01-01 00:00:01') + FLOOR(0 + (RAND() * 1672531200)))`,
+      []
+    );
+    console.log("complete");
   },
 };
 

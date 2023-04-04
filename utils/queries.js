@@ -31,6 +31,40 @@ const queries = {
     }
   },
 
+  selectHistory: async (id, withLocations = false) => {
+    try {
+      const relations = await runQuery(statements.selectHistoryRelations(), [id]);
+      if (relations instanceof Error) throw new Error(`selectHistory ${data}`);
+
+      const data = [];
+      for (const { id } of relations) {
+        const history = await runQuery(statements.selectHistory(), [id]);
+        if (history instanceof Error) throw new Error(`selectHistory ${history}`);
+
+        if (withLocations) {
+          for (const his of history) {
+            const locations = await runQuery(statements.selectHistoryLocationRelation(), [his.id]);
+
+            if (locations instanceof Error) throw new Error(`selectHistory ${locations}`);
+
+            his.locations = [];
+            for (const { id } of locations) {
+              const location = await runQuery(statements.selectLocationById(), [id]);
+
+              for (const entry of location)
+                his.locations.push({ name: entry.name, value: entry.value });
+            }
+          }
+        }
+        for (const his of history) data.push({ ...his });
+      }
+
+      return data;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
   patchStock: async (data) => {
     try {
       const res = await runQuery(statements.patchStock(), [
