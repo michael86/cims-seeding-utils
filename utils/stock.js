@@ -51,7 +51,7 @@ const stock = {
 
     return stock;
   },
-  createLocations: async (id, createRelation = false) => {
+  createLocations: async (id, createRelation = false, history = false) => {
     const count = Math.floor(Math.random() * 5) + 1;
     const ids = [];
     for (let i = 0; i < count; i++) {
@@ -59,7 +59,9 @@ const stock = {
 
       const res = await queries.insertLocation(location, true);
 
-      createRelation && (await queries.insertLocationRelation(id, res));
+      createRelation && history
+        ? await queries.insertHistorylocationRelation(id, res)
+        : await queries.insertLocationRelation(id, res);
 
       ids.push(res);
     }
@@ -76,6 +78,8 @@ const stock = {
 
       for (const location of locationIds)
         await queries.insertHistorylocationRelation(res, location);
+
+      return res;
     } catch (err) {
       console.log(err);
     }
@@ -116,7 +120,7 @@ const stock = {
 
     for (const item of data) {
       const count = utils.getRandomNumberInRange(500, 1000);
-      console.log(`creating ${count} entries of history for ${item.sku}`);
+
       let snapshot = [];
       for (let i = 0; i <= count; i++) {
         const target = Math.floor(Math.random() * 2) + 1;
@@ -141,7 +145,11 @@ const stock = {
         //create dates here
         snapshot.push(item);
         await queries.patchStock(item);
-        snapshot[i - 1] && (await stock.createHistory(snapshot[i - 1], snapshot[i - 1].id));
+
+        console.log(`Creating entry ${i} of ${count} for ${item.sku}`);
+        const historyRes =
+          snapshot[i - 1] && (await stock.createHistory(snapshot[i - 1], snapshot[i - 1].id));
+        snapshot[i - 1] && (await stock.createLocations(historyRes, true, true));
       }
     }
 
