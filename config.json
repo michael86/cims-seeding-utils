@@ -2,5 +2,7 @@
   "userId": 84,
   "invoiceCount": 50,
   "invoiceItemCount": 10,
-  "stockCount": 50
+  "stockCount": 50,
+  "stockHistoryCountMin": 1000,
+  "stockHistoryCountMax": 5000
 }

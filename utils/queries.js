@@ -21,6 +21,7 @@ const queries = {
   selectStock: async (addLocations = false) => {
     try {
       let res = await runQuery(statements.selectStock());
+
       if (res instanceof Error) throw new Error(`selectStock: ${res}`);
 
       res = addLocations ? queries.addLocations(res) : res;
@@ -65,6 +66,16 @@ const queries = {
     }
   },
 
+  selectHistoryByDate: async (sku) => {
+    try {
+      const data = await runQuery(statements.selectHistoryDate(), [sku]);
+      if (data instanceof Error) throw new Error(`selectHistoryByDate ${data}`);
+
+      return data[0].date;
+    } catch (err) {
+      console.log(err);
+    }
+  },
   patchStock: async (data) => {
     try {
       const res = await runQuery(statements.patchStock(), [
@@ -76,6 +87,25 @@ const queries = {
 
       if (res instanceof Error) throw new Error(`patchStock ${res}`);
       return res;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  patchStockDate: async (sku, date) => {
+    try {
+      const formatted = new Date(date * 1000);
+      // 2023-04-13 19:39:49
+      const year = formatted.getFullYear();
+      const month = formatted.getMonth() + 1;
+      const day = formatted.getDate();
+      const hour = formatted.getHours();
+      const min = formatted.getMinutes();
+      const secs = formatted.getSeconds();
+
+      const newDate = `${year}-${month}-${day} ${hour}:${min}:${secs}`;
+      console.log(`Setting ${sku} date to ${newDate}`);
+      await runQuery(statements.patchStockDate(), [newDate, sku]);
     } catch (err) {
       console.log(err);
     }

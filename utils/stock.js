@@ -119,9 +119,13 @@ const stock = {
     const data = await queries.selectStock(true);
 
     for (const item of data) {
-      const count = utils.getRandomNumberInRange(500, 1000);
+      const count = utils.getRandomNumberInRange(
+        config.stockHistoryCountMin,
+        config.stockHistoryCountMax
+      );
 
       let snapshot = [];
+      console.log(`Creating ${count} entries for ${item.sku}`);
       for (let i = 0; i <= count; i++) {
         const target = Math.floor(Math.random() * 2) + 1;
 
@@ -146,20 +150,24 @@ const stock = {
         snapshot.push(item);
         await queries.patchStock(item);
 
-        console.log(`Creating entry ${i} of ${count} for ${item.sku}`);
         const historyRes =
           snapshot[i - 1] && (await stock.createHistory(snapshot[i - 1], snapshot[i - 1].id));
         snapshot[i - 1] && (await stock.createLocations(historyRes, true, true));
       }
     }
 
-    //handle dates.
-    console.log("setting dates for hitory");
+    console.log(`randomising dates for history`);
     await runQuery(
       `update history set date_added = FROM_UNIXTIME(UNIX_TIMESTAMP('1970-01-01 00:00:01') + FLOOR(0 + (RAND() * 1672531200)))`,
       []
     );
-    console.log("complete");
+  },
+  syncDates: async () => {
+    const stock = await queries.selectStock();
+    for (const { sku } of stock) {
+      const date = await queries.selectHistoryByDate(sku);
+      await queries.patchStockDate(sku, date);
+    }
   },
 };
 

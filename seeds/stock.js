@@ -7,6 +7,8 @@ const main = async () => {
 
   await stock.insertStock(data, companies);
   await stock.generateHistory();
+  await stock.syncDates();
+  console.log("stock completed");
 
   //
   //   const invoices = await createInvoices();
